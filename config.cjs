@@ -3,7 +3,7 @@ require("dotenv").config();
 
 const config = {
   // 🧠 Session & Identity
-  SESSION_ID: process.env.SESSION_ID || "Popkidmd$MLJjtNih",
+  SESSION_ID: process.env.SESSION_ID || "POPKID;;;WppTSDRS#FQs-DpW37wANoLpKbOaLGim7gVIBrxbKE1IsWEEXyt0",
   PREFIX: process.env.PREFIX || '.',
   BOT_NAME: process.env.BOT_NAME || "POPKID GLE",
   BOT: process.env.BOT || "hello 👋",
@@ -21,7 +21,7 @@ const config = {
  
   // 🔧 Auto features
   AUTO_STATUS_SEEN: process.env.AUTO_STATUS_SEEN === 'true',
-  AUTO_BIO: process.env.AUTO_BIO === 'true',
+  AUTO_BIO: process.env.AUTO_BIO === 'false',
   AUTO_STATUS_REACT: process.env.AUTO_STATUS_REACT === 'true',
   AUTO_REPLY_STATUS: process.env.AUTO_REPLY_STATUS === 'true',
   AUTO_STICKER: process.env.AUTO_STICKER === 'true',
