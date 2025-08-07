@@ -1,75 +1,70 @@
+import { exec } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import https from 'https';
 import unzipper from 'unzipper';
 import config from '../../config.cjs';
 
-//node
 const updateCommand = async (m, sock) => {
   const prefix = config.PREFIX || '.';
-  const cmdRaw = m.body.startsWith(prefix)
-    ? m.body.slice(prefix.length).split(' ')[0].toLowerCase()
-    : '';
-
+  const cmdRaw = m.body.startsWith(prefix) ? m.body.slice(prefix.length).split(' ')[0].toLowerCase() : '';
   const sender = m.sender;
   const isOwner = sender === config.OWNER_NUMBER + '@s.whatsapp.net';
 
   if (!['update', 'restart', 'reboot'].includes(cmdRaw)) return;
 
   if (!isOwner) {
-    return await sock.sendMessage(
-      m.from,
-      { text: '⛔ *Access Denied*\nOnly the bot owner can run this command.' },
-      { quoted: m }
-    );
+    return await sock.sendMessage(m.from, {
+      text: '⛔ *Access Denied*\nOnly the bot owner can run this command.',
+    }, { quoted: m });
   }
 
   if (cmdRaw === 'restart' || cmdRaw === 'reboot') {
     await sock.sendMessage(m.from, {
-      text: `♻️ *Restart Command*\n\n✅ *Bot restarting...*`,
+      text: '♻️ *Restarting...*\nPlease wait...',
     }, { quoted: m });
 
     setTimeout(() => process.exit(0), 1000);
     return;
   }
 
+  // Handle update
   if (cmdRaw === 'update') {
-    await sock.sendMessage(m.from, {
-      text: '🔄 *Downloading update, please wait...*'
-    }, { quoted: m });
+    await sock.sendMessage(m.from, { text: '🔄 *Downloading update, please wait...*' }, { quoted: m });
+
+    const zipUrl = 'https://github.com/devpopkid/POPKID-GLE/archive/refs/heads/main.zip';
+    const zipPath = path.join(process.cwd(), 'update.zip');
+    const tempExtractPath = path.join(process.cwd(), 'update_temp');
 
     try {
-      const zipUrl = 'https://github.com/devpopkid/POPKID-GLE/archive/refs/heads/main.zip';
-      const zipPath = path.join(process.cwd(), 'update.zip');
-      const tempExtractPath = path.join(process.cwd(), 'update_temp');
+      // Download zip
+      await new Promise((resolve, reject) => {
+        const file = fs.createWriteStream(zipPath);
+        https.get(zipUrl, (response) => {
+          response.pipe(file);
+          file.on('finish', () => file.close(resolve));
+        }).on('error', (err) => {
+          fs.unlinkSync(zipPath);
+          reject(err);
+        });
+      });
 
-      const downloadZip = async () => {
-        const res = await fetch(zipUrl);
-        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        const buffer = await res.arrayBuffer();
-        await fs.promises.writeFile(zipPath, Buffer.from(buffer));
-      };
-
-      await downloadZip();
-
-      const stat = fs.statSync(zipPath);
-      if (stat.size < 1000) throw new Error('Downloaded ZIP too small or invalid.');
-
+      // Extract ZIP
       await fs.promises.mkdir(tempExtractPath, { recursive: true });
-
       await fs.createReadStream(zipPath)
         .pipe(unzipper.Extract({ path: tempExtractPath }))
         .promise();
 
-      const extractedFolders = fs.readdirSync(tempExtractPath)
-        .filter(f => fs.statSync(path.join(tempExtractPath, f)).isDirectory());
+      // Get extracted folder
+      const [extractedFolder] = fs.readdirSync(tempExtractPath).filter(f => fs.statSync(path.join(tempExtractPath, f)).isDirectory());
+      const extractedPath = path.join(tempExtractPath, extractedFolder);
 
-      if (!extractedFolders.length) throw new Error('No folder found in ZIP.');
-
-      const extractedPath = path.join(tempExtractPath, extractedFolders[0]);
-
+      // Recursive copy (excluding critical files)
+      const excluded = ['node_modules', '.git', 'session', 'update.zip', 'config.cjs'];
       const copyRecursive = (src, dest) => {
         const entries = fs.readdirSync(src, { withFileTypes: true });
         for (const entry of entries) {
+          if (excluded.includes(entry.name)) continue;
           const srcPath = path.join(src, entry.name);
           const destPath = path.join(dest, entry.name);
           if (entry.isDirectory()) {
@@ -83,18 +78,35 @@ const updateCommand = async (m, sock) => {
 
       copyRecursive(extractedPath, process.cwd());
 
-      fs.unlinkSync(zipPath);
-      fs.rmSync(tempExtractPath, { recursive: true, force: true });
+      // Cleanup
+      await fs.promises.rm(zipPath, { force: true });
+      await fs.promises.rm(tempExtractPath, { recursive: true, force: true });
 
-      // Envoi d'un message simple sans bouton
       await sock.sendMessage(m.from, {
-        text: `✅ *Update complete!*\n\nPlease restart the bot manually.`,
+        text: `
+🌐 *Update Completed*
+✅ Bot files updated successfully.
+
+🧠 Use \`${prefix}restart\` to reload the bot now.
+        `.trim(),
+        contextInfo: {
+          forwardingScore: 999,
+          isForwarded: true,
+          externalAdReply: {
+            title: "POPKID-GLE",
+            body: "Update Ready",
+            thumbnailUrl: "https://files.catbox.moe/e1k73u.jpg",
+            mediaType: 1,
+            renderLargerThumbnail: true,
+            sourceUrl: "https://github.com/devpopkid/POPKID-GLE"
+          }
+        }
       }, { quoted: m });
 
     } catch (err) {
       console.error('Update error:', err);
       await sock.sendMessage(m.from, {
-        text: `❌ *Update failed.*\n\n${err.message}`
+        text: '❌ *Update failed.* Please check logs for details.',
       }, { quoted: m });
     }
   }

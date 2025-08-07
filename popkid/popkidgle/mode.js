@@ -14,33 +14,29 @@ const modeCommand = async (m, Matrix) => {
       text: msg,
       contextInfo: {
         externalAdReply: {
-          title: "💻 POPKID-XMD // MODECORE™",
-          body: "System Access Node | Terminal vX.3.2",
-          thumbnailUrl: "https://i.ibb.co/hWsYdX0/pkmode.jpg",
+          title: '💻 POPKID-XMD // MODECORE™',
+          body: 'System Access Node | Terminal vX.3.2',
+          thumbnailUrl: 'https://i.ibb.co/hWsYdX0/pkmode.jpg',
           mediaType: 1,
-          mediaUrl: "https://github.com/devpopkid",
-          sourceUrl: "https://github.com/devpopkid"
+          mediaUrl: 'https://github.com/devpopkid',
+          sourceUrl: 'https://github.com/devpopkid',
         },
         forwardedNewsletterMessageInfo: {
-          newsletterJid: "120363290715861418@newsletter",
-          newsletterName: "🧠 POPKID-XMD // CORE ENGINE"
-        }
-      }
+          newsletterJid: '120363290715861418@newsletter',
+          newsletterName: '🧠 POPKID-XMD // CORE ENGINE',
+        },
+      },
     });
 
   // 🛑 Intruder Warning
   if (!isCreator) {
     return sendStyled(`
-┏━[🚨 SYSTEM BREACH DETECTED]━┓
-┃
-┃ ⚠️ *UNAUTHORIZED ACCESS* ⚠️
-┃ 🧑‍💻 User: ${m.pushName || "Unknown"}
-┃ 🔒 Command locked to OWNER only.
-┃
-┃ 🔁 Report logged to POPKID-Net™
-┃ 🧬 Firewall status: *ACTIVE*
-┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━┛`);
+🚫 *ACCESS DENIED*
+
+🔐 *OWNER ONLY COMMAND*
+👤 User: ${m.pushName || 'Unknown'}
+🧬 Firewall: ACTIVE
+📡 Report sent to POPKID-Net™`);
   }
 
   // ✅ Mode Switch
@@ -50,36 +46,27 @@ const modeCommand = async (m, Matrix) => {
     config.MODE = mode;
 
     return sendStyled(`
-┏━[⚙️ MODECORE™ UPDATE]━┓
-┃
-┃ ✅ *MODE OVERRIDE SUCCESS*
-┃ 🔧 MODE: ${mode.toUpperCase()}
-┃
-┃ 🔓 PUBLIC  ➤ Anyone can use bot
-┃ 🔐 PRIVATE ➤ Owner-only access
-┃
-┃ 🧠 ENGINE: POPKID-XMD vX.3.2
-┃ 🌐 Status: LINKED ✔️
-┃
-┗━━━━━━━━━━━━━━━━━━━━━━━┛`);
+✅ *MODE UPDATED*
+
+🔧 Mode: *${mode.toUpperCase()}*
+🔓 Public ➤ Everyone
+🔐 Private ➤ Owner only
+
+🧠 POPKID-XMD vX.3.2`);
   }
 
   // ⚙️ Help Menu
   return sendStyled(`
-┏━[🧩 MODECORE™ HELP PANEL]━┓
-┃
-┃ 🧾 *COMMAND USAGE:*
-┃
-┃ ▶ .mode public
-┃    ➤ Unlock bot globally
-┃
-┃ ▶ .mode private
-┃    ➤ Lock bot to OWNER only
-┃
-┃ 📡 Current MODE: ${config.MODE?.toUpperCase() || 'UNKNOWN'}
-┃ 🧠 Core: POPKID-XMD vX.3.2
-┃
-┗━━━━━━━━━━━━━━━━━━━━━━━┛`);
+📘 *MODECORE HELP*
+
+▶ ${prefix}mode public
+➤ Allow all users
+
+▶ ${prefix}mode private
+➤ Restrict to owner
+
+📡 Current: *${config.MODE?.toUpperCase() || 'UNKNOWN'}*
+🧠 Core: POPKID-XMD vX.3.2`);
 };
 
 export default modeCommand;
